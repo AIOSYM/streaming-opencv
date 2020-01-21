@@ -8,7 +8,7 @@ import time
 
 def main():
 
-    HOST='127.0.0.1'
+    HOST='192.168.100.125'
     PORT=8089
 
     s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -34,12 +34,12 @@ def main():
             data += conn.recv(4096)
         frame_data = data[:msg_size]
         data = data[msg_size:]
-        
         frame=pickle.loads(frame_data)
         cv2.imshow('frame',frame)
         sent_time = time.time()
-        print(f'Frame #{count}: Received:{sent_time}')
+        #print(f'Frame #{count}: Received:{sent_time}')
         count += 1
+        #conn.sendall(b'Got it')
         key = cv2.waitKey(1)
         if key == ord('q'):
             break

@@ -9,7 +9,7 @@ import time
 def main():
     cap=cv2.VideoCapture(0)
     clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    clientsocket.connect(('192.168.100.125',8089))
+    clientsocket.connect(('192.168.100.126',8089))
     
     count = 0
     while True:

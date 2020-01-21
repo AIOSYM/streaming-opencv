@@ -21,8 +21,8 @@ def main():
         count += 1
         data = pickle.dumps(frame) 
         clientsocket.sendall(struct.pack("L", len(data))+data) 
-        #data = clientsocket.recv(1024)
-        #print('Received', repr(data))
+        data = clientsocket.recv(1024)
+        print('Received', repr(data))
         
 def display(frame):
     cv2.imshow("Client", frame)

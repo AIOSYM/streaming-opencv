@@ -9,19 +9,20 @@ import time
 def main():
     cap=cv2.VideoCapture(0)
     clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    clientsocket.connect(('localhost',8089))
+    clientsocket.connect(('192.168.100.125',8089))
     
     count = 0
-
     while True:
         ret,frame = cap.read()
         frame = cv2.resize(frame, (480, 320))
         display(frame)
-        sent_time = time.time()
-        print(f'Frame #{count}: Send:{sent_time}')
+        #sent_time = time.time()
+        #print(f'Frame #{count}: Send:{sent_time}')
         count += 1
         data = pickle.dumps(frame) 
         clientsocket.sendall(struct.pack("L", len(data))+data) 
+        #data = clientsocket.recv(1024)
+        #print('Received', repr(data))
         
 def display(frame):
     cv2.imshow("Client", frame)

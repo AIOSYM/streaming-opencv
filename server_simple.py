@@ -45,6 +45,7 @@ def main():
         
         key = cv2.waitKey(1)
         if key == ord('q'):
+            print('Server is closed.')
             break
         
         count += 1

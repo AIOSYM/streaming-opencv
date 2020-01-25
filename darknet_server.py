@@ -119,8 +119,10 @@ def YOLO():
         frame_read = pickle.loads(frame_data)
         #-----------------------
         
-        sent_time = time.time()
-        print(f'Frame#{count}:Received@{sent_time}')
+        # Received timestamp------
+        received_time = time.time()
+        print(f'Frame#{count}:Received@{received_time}')
+        #---------------------------------
         
         frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb,
@@ -132,6 +134,11 @@ def YOLO():
 
         detections = darknet.detect_image(netMain, metaMain, darknet_image, thresh=0.25)
         meta = pickle.dumps(detections)
+        
+        # Sent back timestamp------
+        sent_time = time.time()
+        print(f'Frame#{count}:SentBack@{sent_time}')
+        #---------------------------------
         conn.send(meta)
         image = cvDrawBoxes(detections, frame_resized)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

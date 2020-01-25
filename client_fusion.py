@@ -37,8 +37,8 @@ def main():
     TO_HOST = '192.168.100.126'
     PORT = 5000
     
-    CAP_WIN_NAME = 'Capture Display'
-    RESULT_WIN_NAME = 'Result Display'
+    SENT_WIN_NAME = 'Client SENT'
+    RECEIVED_WIN_NAME = 'Client RECEIVED'
     CAP = cv2.VideoCapture(0)
     
     if not CAP.isOpened():
@@ -60,7 +60,7 @@ def main():
         
         frame = cv2.resize(frame, (480, 320))
         data = pickle.dumps(frame) 
-        cv2.imshow(CAP_WIN_NAME, frame)
+        cv2.imshow(SENT_WIN_NAME, frame)
         
         # Sent timestamp------
         sent_time = time.time()
@@ -81,7 +81,7 @@ def main():
             print('Disconnected from server')
             break
                 
-        cv2.imshow(RESULT_WIN_NAME, bbox_frame)
+        cv2.imshow(RECEIVED_WIN_NAME, bbox_frame)
         
         key = cv2.waitKey(1) 
         if key == ord('q') or key == 27: #ESC_key

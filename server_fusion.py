@@ -49,7 +49,8 @@ def YOLO():
     
     HOST='192.168.100.126'
     PORT= 5000
-    WIN_NAME = 'Server Display'
+    REC_WIN_NAME = 'Server RECEIVED'
+    SENT_WIN_NAME = 'Server SENT'
     
     if not os.path.exists(configPath):
         raise ValueError("Invalid config path `" +
@@ -87,10 +88,14 @@ def YOLO():
             pass
          
     print("Starting the YOLO loop...")
+    
+    print(metaMain, netMain, altNames)
 
     # Create an image we reuse for each detect
     darknet_image = darknet.make_image(darknet.network_width(netMain),
                                     darknet.network_height(netMain),3)
+    
+    print(type(darknet_image))
 
     serversocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     print('Socket created')
@@ -124,7 +129,7 @@ def YOLO():
         received_time = time.time()
         print(f'Frame#{count}:Received@{received_time}')
         #---------------------------------
-        cv2.imshow("Raw Frame", frame_read)
+        cv2.imshow(REC_WIN_NAME, frame_read)
         
         frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb,
@@ -146,7 +151,7 @@ def YOLO():
         bbox_frame = cvDrawBoxes(detections, frame_resized)
         bbox_frame = cv2.cvtColor(bbox_frame, cv2.COLOR_BGR2RGB)
         
-        cv2.imshow(WIN_NAME, bbox_frame)
+        cv2.imshow(SENT_WIN_NAME, bbox_frame)
         key = cv2.waitKey(1)
         if key == ord('q'):
             print('Server is closed.')

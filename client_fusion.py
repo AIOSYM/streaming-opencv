@@ -6,7 +6,14 @@ import pickle
 import struct
 import time
 
-def convertBack(x, y, w, h):
+CAPTURE_WIDTH, CAPTURE_HEIGHT = None, None
+DAKRNET_WIDTH, DARKNET_HEIGHT = 416, 416
+
+def convertBack(x0, y0, w0, h0):
+    
+    WIDTH_RATIO, HEIGHT_RATIO = CAPTURE_WIDTH/DAKRNET_WIDTH, CAPTURE_HEIGHT/DARKNET_HEIGHT
+    x, y, w, h = x0*WIDTH_RATIO, y0*HEIGHT_RATIO, w0*WIDTH_RATIO, h0*HEIGHT_RATIO
+    
     xmin = int(round(x - (w / 2)))
     xmax = int(round(x + (w / 2)))
     ymin = int(round(y - (h / 2)))
@@ -34,13 +41,18 @@ def cvDrawBoxes(detections, frame):
 
 def main():
     
+    global CAPTURE_WIDTH, CAPTURE_HEIGHT
+    
     TO_HOST = '192.168.100.126'
     PORT = 5000
     
     SENT_WIN_NAME = 'Client SENT'
     RECEIVED_WIN_NAME = 'Client RECEIVED'
-    CAP = cv2.VideoCapture(0)
     
+    CAP = cv2.VideoCapture(0)
+    CAPTURE_WIDTH = CAP.get(cv2.CAP_PROP_FRAME_WIDTH)
+    CAPTURE_HEIGHT = CAP.get(cv2.CAP_PROP_FRAME_HEIGHT)
+     
     if not CAP.isOpened():
         print('Unable to connect to camera')
         sys.exit()
@@ -53,14 +65,14 @@ def main():
     while True:
         
         ret,frame = CAP.read()
-        
+        frame_copy = np.copy(frame)
+                
         if not ret:
             print('Unable to read frame')
             break
         
-        frame = cv2.resize(frame, (480, 320))
+        frame = cv2.resize(frame, (416, 416))
         data = pickle.dumps(frame) 
-        cv2.imshow(SENT_WIN_NAME, frame)
         
         # Sent timestamp------
         sent_time = time.time()
@@ -75,12 +87,12 @@ def main():
             received_time = time.time()
             print(f'Frame#{count}:ReceivedBack@{received_time}')
             #---------------------------------
-            
-            bbox_frame = cvDrawBoxes(detections, frame)
         except Exception as e:
             print('Disconnected from server')
             break
                 
+        bbox_frame = cvDrawBoxes(detections, frame_copy)
+        #cv2.imshow(SENT_WIN_NAME, frame_copy)
         cv2.imshow(RECEIVED_WIN_NAME, bbox_frame)
         
         key = cv2.waitKey(1) 

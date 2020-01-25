@@ -38,7 +38,7 @@ def main():
         print(f'Frame#{count}:Send@{sent_time}')
         try:
             clientsocket.sendall(struct.pack("L", len(data))+data) 
-        except BrokenPipeError as e:
+        except Exception as e:
             print('Disconnected from server')
             break
         

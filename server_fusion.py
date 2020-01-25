@@ -124,6 +124,7 @@ def YOLO():
         received_time = time.time()
         print(f'Frame#{count}:Received@{received_time}')
         #---------------------------------
+        cv2.imshow("Raw Frame", frame_read)
         
         frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb,
@@ -143,7 +144,7 @@ def YOLO():
         conn.send(meta)
         
         bbox_frame = cvDrawBoxes(detections, frame_resized)
-        #bbox_frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        bbox_frame = cv2.cvtColor(bbox_frame, cv2.COLOR_BGR2RGB)
         
         cv2.imshow(WIN_NAME, bbox_frame)
         key = cv2.waitKey(1)

@@ -13,7 +13,8 @@ def convertBack(x, y, w, h):
     ymax = int(round(y + (h / 2)))
     return xmin, ymin, xmax, ymax
 
-def cvDrawBoxes(detections, img):
+def cvDrawBoxes(detections, frame):
+    img = frame
     for detection in detections:
         x, y, w, h = detection[2][0],\
             detection[2][1],\
@@ -59,6 +60,7 @@ def main():
         
         frame = cv2.resize(frame, (480, 320))
         data = pickle.dumps(frame) 
+        cv2.imshow(CAP_WIN_NAME, frame)
         
         # Sent timestamp------
         sent_time = time.time()
@@ -71,7 +73,7 @@ def main():
             
             # Received back timestamp------
             received_time = time.time()
-            print(f'Frame#{count}:Sent@{received_time}')
+            print(f'Frame#{count}:ReceivedBack@{received_time}')
             #---------------------------------
             
             bbox_frame = cvDrawBoxes(detections, frame)
@@ -79,7 +81,6 @@ def main():
             print('Disconnected from server')
             break
                 
-        cv2.imshow(CAP_WIN_NAME, frame)
         cv2.imshow(RESULT_WIN_NAME, bbox_frame)
         
         key = cv2.waitKey(1) 

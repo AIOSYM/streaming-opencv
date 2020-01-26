@@ -61,6 +61,8 @@ def main():
     clientsocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     clientsocket.connect((TO_HOST, PORT))
     
+    recv_data = b''
+    payload_size = struct.calcsize("L") 
     count = 0
     while True:
         
@@ -87,12 +89,12 @@ def main():
         try:
             #------------------
             while len(recv_data) < payload_size:
-                recv_data += conn.recv(4096)
+                recv_data += clientsocket.recv(4096)
             packed_msg_size = recv_data[:payload_size]
             recv_data = recv_data[payload_size:]
             msg_size = struct.unpack("L", packed_msg_size)[0]
             while len(recv_data) < msg_size:
-                recv_data += conn.recv(4096)
+                recv_data += clientsocket.recv(4096)
             frame_data = recv_data[:msg_size]
             recv_data = recv_data[msg_size:]
             frame_read = pickle.loads(frame_data)

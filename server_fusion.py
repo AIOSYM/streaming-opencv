@@ -89,7 +89,7 @@ def YOLO():
          
     print("Starting the YOLO loop...")
     
-    print(metaMain, netMain, altNames)
+    
 
     # Create an image we reuse for each detect
     darknet_image = darknet.make_image(darknet.network_width(netMain),

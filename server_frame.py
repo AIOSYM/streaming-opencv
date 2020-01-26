@@ -89,15 +89,11 @@ def YOLO():
          
     print("Starting the YOLO loop...")
     
-    print(metaMain, netMain, altNames)
-
     # Create an image we reuse for each detect
     darknet_image = darknet.make_image(darknet.network_width(netMain),
                                     darknet.network_height(netMain),3)
     
-    print(type(darknet_image))
-
-    serversocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    serversocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     print('Socket created')
 
     serversocket.bind((HOST,PORT))
@@ -105,7 +101,7 @@ def YOLO():
     serversocket.listen(10)
     print('Socket now listening')
 
-    conn,addr=serversocket.accept()
+    conn,addr = serversocket.accept()
 
     data = b''
     payload_size = struct.calcsize("L") 
@@ -149,7 +145,11 @@ def YOLO():
         print(f'Frame#{count}:SentBack@{sent_time}')
         #---------------------------------
         bbox_data = pickle.dumps(bbox_frame)
-        conn.sendall(struct.pack("L", len(bbox_data))+bbox_data)
+        try:
+            conn.sendall(struct.pack("L", len(bbox_data))+bbox_data)
+        except Exception as e:
+            print(e)
+            break
         
         cv2.imshow(SENT_WIN_NAME, bbox_frame)
         key = cv2.waitKey(1)

@@ -6,14 +6,22 @@ import pickle
 import struct
 import time
 
-def convertBack(x, y, w, h):
+CAPTURE_WIDTH, CAPTURE_HEIGHT = None, None
+DAKRNET_WIDTH, DARKNET_HEIGHT = 416, 416
+
+def convertBack(x0, y0, w0, h0):
+    
+    WIDTH_RATIO, HEIGHT_RATIO = CAPTURE_WIDTH/DAKRNET_WIDTH, CAPTURE_HEIGHT/DARKNET_HEIGHT
+    x, y, w, h = x0*WIDTH_RATIO, y0*HEIGHT_RATIO, w0*WIDTH_RATIO, h0*HEIGHT_RATIO
+    
     xmin = int(round(x - (w / 2)))
     xmax = int(round(x + (w / 2)))
     ymin = int(round(y - (h / 2)))
     ymax = int(round(y + (h / 2)))
     return xmin, ymin, xmax, ymax
 
-def cvDrawBoxes(detections, img):
+def cvDrawBoxes(detections, frame):
+    img = frame
     for detection in detections:
         x, y, w, h = detection[2][0],\
             detection[2][1],\
@@ -32,29 +40,82 @@ def cvDrawBoxes(detections, img):
     return img
 
 def main():
-    cap=cv2.VideoCapture(0)
-    clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    clientsocket.connect(('192.168.100.126',8089))
+    
+    global CAPTURE_WIDTH, CAPTURE_HEIGHT
+    
+    TO_HOST = '192.168.100.126'
+    PORT = 5000
+    
+    SENT_WIN_NAME = 'Client SENT'
+    RECEIVED_WIN_NAME = 'Client RECEIVED'
+    
+    CAP = cv2.VideoCapture(0)
+    CAPTURE_WIDTH = CAP.get(cv2.CAP_PROP_FRAME_WIDTH)
+    CAPTURE_HEIGHT = CAP.get(cv2.CAP_PROP_FRAME_HEIGHT)
+     
+    if not CAP.isOpened():
+        print('Unable to connect to camera')
+        sys.exit()
+    
+    # Create socket object using (IPv4, TCP)
+    clientsocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    clientsocket.connect((TO_HOST, PORT))
     
     count = 0
     while True:
-        ret,frame = cap.read()
-        frame = cv2.resize(frame, (480, 320))
-        #sent_time = time.time()
-        #print(f'Frame #{count}: Send:{sent_time}')
-        count += 1
-        data = pickle.dumps(frame) 
-        clientsocket.sendall(struct.pack("L", len(data))+data) 
-        data = clientsocket.recv(1024)
-        detections = pickle.loads(data)
-        image = cvDrawBoxes(detections, frame)
-        display(image)
-        print('Received', repr(detections))
         
-def display(frame):
-    cv2.imshow("Client", frame)
-    cv2.waitKey(1)
-
+        ret,frame = CAP.read()
+        frame_copy = np.copy(frame)
+                
+        if not ret:
+            print('Unable to read frame')
+            break
+        
+        frame = cv2.resize(frame, (416, 416))
+        data = pickle.dumps(frame) 
+        
+        # Sent timestamp------
+        sent_time = time.time()
+        print(f'Frame#{count}:Sent@{sent_time}')
+        #---------------------------------
+        try:
+            clientsocket.sendall(struct.pack("L", len(data))+data) 
+        except Exception as e:
+            print('Disconnected from server')
+            break
+        
+        try:
+            #------------------
+            while len(recv_data) < payload_size:
+                recv_data += conn.recv(4096)
+            packed_msg_size = recv_data[:payload_size]
+            recv_data = recv_data[payload_size:]
+            msg_size = struct.unpack("L", packed_msg_size)[0]
+            while len(recv_data) < msg_size:
+                recv_data += conn.recv(4096)
+            frame_data = recv_data[:msg_size]
+            recv_data = recv_data[msg_size:]
+            frame_read = pickle.loads(frame_data)
+            #-----------------------
+            
+            # Received back timestamp------
+            received_time = time.time()
+            print(f'Frame#{count}:ReceivedBack@{received_time}')
+            #---------------------------------
+        except Exception as e:
+            print('No receiving data from server')
+            break
+            
+        #cv2.imshow(SENT_WIN_NAME, frame_copy)
+        cv2.imshow(RECEIVED_WIN_NAME, frame_read)
+        
+        key = cv2.waitKey(1) 
+        if key == ord('q') or key == 27: #ESC_key
+            print('Stop streaming')
+            break
+        
+        count += 1
+        
 if __name__ == '__main__':
     main()
     

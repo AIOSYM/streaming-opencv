@@ -49,6 +49,8 @@ def YOLO():
     
     HOST='192.168.100.126'
     PORT= 5000
+    REC_WIN_NAME = 'Server RECEIVED'
+    SENT_WIN_NAME = 'Server SENT'
     
     if not os.path.exists(configPath):
         raise ValueError("Invalid config path `" +
@@ -86,10 +88,14 @@ def YOLO():
             pass
          
     print("Starting the YOLO loop...")
+    
+    print(metaMain, netMain, altNames)
 
     # Create an image we reuse for each detect
     darknet_image = darknet.make_image(darknet.network_width(netMain),
                                     darknet.network_height(netMain),3)
+    
+    print(type(darknet_image))
 
     serversocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     print('Socket created')
@@ -123,6 +129,7 @@ def YOLO():
         received_time = time.time()
         print(f'Frame#{count}:Received@{received_time}')
         #---------------------------------
+        cv2.imshow(REC_WIN_NAME, frame_read)
         
         frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb,
@@ -134,16 +141,17 @@ def YOLO():
 
         detections = darknet.detect_image(netMain, metaMain, darknet_image, thresh=0.25)
         meta = pickle.dumps(detections)
+        bbox_frame = cvDrawBoxes(detections, frame_resized)
+        bbox_frame = cv2.cvtColor(bbox_frame, cv2.COLOR_BGR2RGB)
         
         # Sent back timestamp------
         sent_time = time.time()
         print(f'Frame#{count}:SentBack@{sent_time}')
         #---------------------------------
-        conn.send(meta)
-        image = cvDrawBoxes(detections, frame_resized)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        bbox_data = pickle.dumps(bbox_frame)
+        conn.sendall(struct.pack("L", len(bbox_data))+bbox_data)
         
-        cv2.imshow('Demo', image)
+        cv2.imshow(SENT_WIN_NAME, bbox_frame)
         key = cv2.waitKey(1)
         if key == ord('q'):
             print('Server is closed.')

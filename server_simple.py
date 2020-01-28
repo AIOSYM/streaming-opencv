@@ -8,7 +8,8 @@ import time
 
 def main():
 
-    HOST = '192.168.100.126'
+    # CHANGE THIS TO MATCH SERVER IP
+    HOST = '127.0.0.1' #LOCAL_HOST
     PORT = 5000
     
     WIN_NAME = 'Server Display'
